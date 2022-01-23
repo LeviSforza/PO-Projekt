@@ -1,0 +1,195 @@
+.outer {
+  background: white;
+  width: 610px;
+  padding: 30px;
+  height: 100%;
+  margin-left: 300px;
+  color: #43425D;
+}
+
+.inner {
+  background: #35344a;
+  width: 500px;
+  padding: 30px;
+  height: 100%;
+  font-size: 22px;
+  color: white;
+  margin: 25px;
+}
+
+.outer2 {
+  background: white;
+  width: 1200px;
+  padding: 30px 30px 150px 30px;
+  height: 100%;
+  margin-left: 30px;
+  color: #43425D;
+  margin-bottom: 100px;
+}
+
+input[type=text], input[type=password], input[type=date], input[type=number], input[type=file], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  font-size: 18px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.login {
+  margin-left: 300px;
+}
+
+.t_details {
+  margin-left: 30px;
+}
+
+.submit {
+  color: white;
+  background: #3b86ff;
+  font-size: 18px;
+  font-family: "Lato", sans-serif;
+  padding: 8px 20px;
+  border-radius: 8px;
+}
+
+.submit:hover {
+  background: #3578e5;
+}
+
+.form-group {
+  margin: 25px 0;
+  color: #b0ceff;
+}
+
+.delete-button {
+  color: white;
+  background: #3b86ff;
+  font-size: 18px;
+  font-family: "Lato", sans-serif;
+  padding: 8px 20px;
+  border-radius: 8px;
+}
+
+.delete-button:hover {
+  background: #3578e5;
+}
+
+.popup {
+  background: white;
+  width: 400px;
+  padding: 10px 30px 20px 30px;
+  height: 260px;
+  margin-left: 300px;
+  color: #ff6565;
+  border: 1px solid #ff6565;
+  border-radius: 8px;
+}
+
+.popupSlim {
+  background: white;
+  width: 400px;
+  padding: 10px 30px 20px 30px;
+  height: 140px;
+  margin-left: 300px;
+  color: #ff6565;
+  border: 1px solid #ff6565;
+  border-radius: 8px;
+}
+
+.popup > p {
+  font-size: 14px;
+  color: #35344a;
+}
+
+.head-question {
+  font-size: 20px;
+}
+
+.under-question {
+  font-size: 16px;
+}
+
+.confirm {
+  color: white;
+  background: #43425D;
+  font-size: 18px;
+  font-family: "Lato", sans-serif;
+  padding: 8px 20px;
+  border-radius: 8px;
+}
+
+.confirm:hover {
+  background: #35344a;
+}
+
+.pos {
+  width: 170px;
+}
+
+#button1 , #button2 {
+  display:inline-block;
+  position: absolute;
+  /* additional code */
+}
+
+#button1 {
+  margin-left: 220px;
+}
+
+#button6, #button7 {
+  margin-left: 680px;
+  width: 200px;
+}
+
+#button4 , #button5 {
+  display:inline-block;
+  position: absolute;
+}
+
+#button4 {
+  margin-left: 460px;
+  width: 200px;
+  margin-top: 30px;
+}
+
+
+#button3, #button5 {
+  margin-left: 680px;
+  width: 200px;
+  margin-top: 30px;
+}
+
+#buttonT , #buttonN, #buttonA {
+  display:inline-block;
+  position: absolute;
+  width: 110px;
+  margin-top: 30px;
+}
+
+#buttonN {
+  margin-left: 140px;
+}
+
+#buttonA {
+  margin-left: 280px;
+}
+
+.error {
+  font-size: 18px;
+  color: #ff6565;
+}
+
+.form-group2 {
+  margin: 25px 0;
+  color: #35344a;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.edit-form {
+  width: 400px;
+  margin-left: 300px;
+}
+

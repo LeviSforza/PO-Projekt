@@ -1,0 +1,19 @@
+.button {
+  font: bold 14px "Lato",sans-serif;
+  text-decoration: none;
+  background-color: #3b86ff;
+  font-size: 18px;
+  color: white;
+  border-radius: 8px;
+  padding: 10px 28px 10px 28px;
+}
+
+.button:hover {
+  background: #3578e5;
+}
+
+.add {
+  margin-top: 30px;
+  margin-right: 100px;
+  padding: 10px;
+}

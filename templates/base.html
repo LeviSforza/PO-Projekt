@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+{% load static %}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet"  href="{%  static  'css/style.css'  %}?{% now "U" %}"/>
+  <title>{% block title %}Firmex Delegations{% endblock %}</title>
+</head>
+<body>
+
+<div class="page">
+    <div  id="mySidenav" class="sidenav">
+        <img src="{% static 'images/firmex.png' %}" class="logo"/>
+        <a href="/"><i class="fa fa-fw fa-home"></i> Home</a>
+        <a href="/deleg"><i class="fa fa-fw fa-suitcase"></i> Delegacje</a>
+        <a href="../"><i class="fa fa-fw fa-calendar"></i> Kalendarz</a>
+        <a href="../"><i class="fa fa-fw fa-cog"></i> Ustawienia</a>
+        <a href="../"><i class="fa fa-fw fa-envelope"></i> Kontakt</a>
+    </div>
+
+    <div class="topnav">
+        {% if user.is_authenticated %}
+            <a href="/deleg/logout">Wyloguj się</a>
+            <a href="/">| {{ user.username }} <i class="fa fa-fw fa-user"></i> |</a>
+        {% else %}
+            <a href="/deleg/login">| Zaloguj się <i class="fa fa-fw fa-user"></i> |</a>
+        {% endif %}
+        <a href="../"><i class="fa fa-fw fa-bell"></i></a>
+        <a class="active" href="../"><i class="fa fa-fw fa-life-ring"></i> </a>
+    </div>
+
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.js' %}"></script>
+
+    <div id="content" name="content" class="main">
+	  {% block content %}
+	  {% endblock %}
+    </div>
+</div>
+
+</body>
+</html>

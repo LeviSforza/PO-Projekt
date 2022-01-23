@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% extends "base.html" %}
+{% block title %}Delegation Details{% endblock %}
+{% load static %}
+
+{% block content %}
+  <h2 class="title t_details">Delegacja {{ curr.departure_date }} - {{ curr.return_date }}</h2>
+    <div class="outer2" id="main">
+
+        <div>
+        {% if request.POST %}
+            {% if expense_del %}
+            <div class="popup">
+                <h1 class="head-question">Czy na pewno chcesz usunąć wybrany wydatek?</h1>
+                <h2 class="under-question">Może to prowadzić do utraty istotnych danych!</h2>
+                <p>Id wydatku: {{ expense_del.id_expense }}</p>
+                <p>Tytuł: {{ expense_del.title }}</p>
+                <p>Kwota: {{ expense_del.sum }}</p>
+                <p>Waluta: {{ expense_del.currensy }}</p>
+
+                <form method="post" class="btn">
+                       {% csrf_token %}
+                       <label hidden>
+                           <input type="text" class="del" name="id_expense_del" value="{{expense_del.id_expense}}" hidden/>
+                       </label>
+                       <button type="submit" id="button1" class="pos submit">Usuń</button>
+                </form>
+                <form method="post" class="btn">
+                       {% csrf_token %}
+                       <label hidden>
+                           <input type="text" class="confirm" name="cancel_stay" value="cancel" hidden/>
+                       </label>
+                       <button type="submit" id="button2" class="confirm pos">Anuluj</button>
+                </form>
+            </div>
+            {% endif %}
+
+            {% if save %}
+            <div class="popupSlim">
+                <h1 class="head-question">Czy na pewno chcesz zapisać zmiany?</h1>
+                <form method="post" class="btn">
+                       {% csrf_token %}
+                       <label hidden>
+                           <input type="text" class="del" name="save_delegation" value="{{expense_del.id_expense}}" hidden/>
+                       </label>
+                       <button type="submit" id="buttonT" class="submit">Tak</button>
+                </form>
+                <form method="post" class="btn">
+                       {% csrf_token %}
+                       <label hidden>
+                           <input type="text" class="del" name="cancel" value="{{expense_del.id_expense}}" hidden/>
+                       </label>
+                       <button type="submit" id="buttonN" class="submit">Nie</button>
+                </form>
+                <form method="post" class="btn">
+                       {% csrf_token %}
+                       <label hidden>
+                           <input type="text" class="confirm" name="cancel_stay" value="cancel" hidden/>
+                       </label>
+                       <button type="submit" id="buttonA" class="confirm">Anuluj</button>
+                </form>
+            </div>
+            {% endif %}
+        {% endif %}
+        </div>
+
+
+
+            <form class="form" method="POST">
+            {% csrf_token %}
+            <div class="edit-form">
+                <div class="error">
+                    {{ form.non_field_errors }}
+                </div>
+                <div class="form-group2">
+                    {{ form.departure_date.errors }}
+                    <label for="{{ form.departure_date.id_for_label }}">Departure date:</label>
+                    {{ form.departure_date }}
+                </div>
+                <div class="form-group2">
+                    {{ form.return_date.errors }}
+                    <label for="{{ form.return_date.id_for_label }}">Return date:</label>
+                    {{ form.return_date }}
+                </div>
+                <div class="form-group2">
+                    {{ form.country.errors }}
+                    <label for="{{ form.country.id_for_label }}">Country:</label>
+                    {{ form.country }}
+                </div>
+                <div class="form-group2">
+                    {{ form.base_currency.errors }}
+                    <label for="{{ form.base_currency.id_for_label }}">Base currency:</label>
+                    {{ form.base_currency }}
+                </div>
+                <div class="form-group2">
+                    {{ form.duration.errors }}
+                    <label for="{{ form.duration.id_for_label }}">Duration (in days):</label>
+                    {{ form.duration }}
+                </div>
+            </div>
+                {% if user.role == 'ORGANIZER' %}
+                    <input type="submit" id="button3" value="Zapisz" name="save" class="pos submit">
+                {% endif %}
+            </form>
+
+
+        <table class="table_users">
+            <thead class="thead">
+                <tr>
+                    <th class="th idDel">
+                        #
+                    </th>
+                    <th class="th departure">
+                        Nazwisko
+                    </th>
+                    <th class="th return">
+                        Imię
+                    </th>
+                    <th class="th duration">
+                        Email
+                    </th>
+                     <th class="th status">
+                        Rola
+                    </th>
+                    <th class="th delete"></th>
+                </tr>
+            </thead>
+            <tbody class="tbody">
+                {% if participants_list %}
+                {% for participant in participants_list %}
+                    <tr>
+                        <td class="td idDel">
+                            {{ participant.id }}
+                        </td>
+                        <td class="td departure">
+                            {{ participant.last_name }}
+                        </td>
+                        <td class="td return">
+                            {{ participant.first_name }}
+                        </td>
+                        <td class="td duration">
+                           {{ participant.username }}
+                        </td>
+                          <td class="td status">
+                           {{ participant.role}}
+                        </td>
+                         <td class="td delete">
+                             {% if participant.role == 'PARTICIPANT' %}
+                                  <form method="post" class="col-md">
+                                      {% csrf_token %}
+                                      <label hidden>
+                                          <input type="text" class="form-control" name="delete_participant" value="{{participant.id}}" hidden/>
+                                      </label>
+                                      <button type="submit" class="button">Usuń</button>
+                                  </form>
+                             {% endif %}
+                         </td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+        {% if user.role == 'ORGANIZER' %}
+            <a href="/deleg/{{ curr.id_delegation }}/add_users"><button id="button6" class="button add">Dodaj uczestników</button></a>
+        {%  endif %}
+
+        <table class="table_expenses">
+            <thead class="thead">
+                <tr>
+                    <th class="th idDel">
+                        #
+                    </th>
+                    <th class="th idDel">
+                        Tytuł
+                    </th>
+                    <th class="th departure">
+                        Data
+                    </th>
+                    <th class="th return">
+                        Typ wydatku
+                    </th>
+                    <th class="th duration">
+                        Kwota
+                    </th>
+                     <th class="th status">
+                        Waluta
+                    </th>
+                     <th class="th status">
+                        Dokument potwierdzający
+                    </th>
+                    <th class="th delete"></th>
+                </tr>
+            </thead>
+            <tbody class="tbody">
+                {% if expenses_list %}
+                {% for expense in expenses_list %}
+                    <tr>
+                        <td class="td idDel">
+                            {{ expense.id_expense }}
+                        </td>
+                        <td class="td departure">
+                            {{ expense.title }}
+                        </td>
+                        <td class="td return">
+                            {{ expense.date }}
+                        </td>
+                        <td class="td duration">
+                           {{ expense.type }}
+                        </td>
+                          <td class="td status">
+                           {{ expense.sum }}
+                        </td>
+                          <td class="td duration">
+                           {{ expense.currency }}
+                        </td>
+                          <td class="td status">
+                           {{ expense.confirmation }}
+                        </td>
+                         <td class="td delete">
+                              <form method="post" class="col-md">
+                                  {% csrf_token %}
+                                  <label hidden>
+                                      <input type="text" class="form-control" name="delete_expense" value="{{expense.id_expense}}" hidden/>
+                                  </label>
+                                  <button type="submit" class="button">Usuń</button>
+                              </form>
+                         </td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+            <a href="/deleg/{{ curr.id_delegation }}/add_expense"><button id="button7" class="button add">Dodaj wydatek</button></a>
+
+
+            <div class="btn">
+                   <button type="submit" id="button4" class="pos submit">Dodaj zaliczkę</button>
+            </div>
+            <form method="post" class="btn">
+                   {% csrf_token %}
+                   <label hidden>
+                       <input type="text" class="confirm" name="cancel" value="cancel" hidden/>
+                   </label>
+                   <button type="submit" id="button5" class="confirm pos">Powrót</button>
+            </form>
+    </div>
+{% endblock %}

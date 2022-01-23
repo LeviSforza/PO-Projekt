@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+{% extends "base.html" %}
+{% block title %}Delegations{% endblock %}
+{% load static %}
+
+{% block content %}
+
+<h2 class="title">Delegacje</h2>
+
+    <div>
+    {% if request.POST %}
+        <div class="popup">
+            <h1 class="head-question">Czy na pewno chcesz usunąć wybraną delegację?</h1>
+            <h2 class="under-question">Może to prowadzić do utraty istotnych danych!</h2>
+            <p>Id delegacji: {{ delegat.id_delegation }}</p>
+            <p>Data wyjazdu: {{ delegat.departure_date }}</p>
+            <p>Data powrotu: {{ delegat.return_date }}</p>
+            <p>Kraj: {{ delegat.country }}</p>
+
+            <form method="post" class="btn">
+                   {% csrf_token %}
+                   <label hidden>
+                       <input type="text" class="del" name="id_del" value="{{delegat.id_delegation}}" hidden/>
+                   </label>
+                   <button type="submit" id="button1" class="pos submit">Usuń</button>
+            </form>
+            <form method="post" class="btn">
+                   {% csrf_token %}
+                   <label hidden>
+                       <input type="text" class="confirm" name="cancel" value="cancel" hidden/>
+                   </label>
+                   <button type="submit" id="button2" class="confirm pos">Anuluj</button>
+            </form>
+        </div>
+    {% endif %}
+    </div>
+
+    <div class="x">
+        <table class="table">
+            <thead class="thead">
+                <tr>
+                    <th class="th idDel">
+                        #
+                    </th>
+                    <th class="th departure">
+                        Data wyjazdu
+                    </th>
+                    <th class="th return">
+                        Data powrotu
+                    </th>
+                    <th class="th duration">
+                        Czas trwania
+                    </th>
+                     <th class="th status">
+                        Status
+                    </th>
+                    <th class="th country">
+                        Kraj wyjazdu
+                    </th>
+                    <th class="th organizer">
+                        Organizator
+                    </th>
+                    <th class="th edit"></th>
+                    <th class="th delete"></th>
+                </tr>
+            </thead>
+            <tbody class="tbody">
+                {% if delegations_list %}
+                {% for delegation in delegations_list %}
+                    <tr>
+                        <td class="td idDel">
+                            {{ delegation.id_delegation }}
+                        </td>
+                        <td class="td departure">
+                            {{ delegation.departure_date }}
+                        </td>
+                        <td class="td return">
+                            {{ delegation.return_date }}
+                        </td>
+                        <td class="td duration">
+                           {{ delegation.duration }}
+                        </td>
+                          <td class="td status">
+                           {{ delegation.status }}
+                        </td>
+                        <td class="td country">
+                           {{ delegation.country }}
+                        </td>
+                           <td class="td organizer">
+                           {{ delegation.FK_organizer.first_name }} {{ delegation.FK_organizer.last_name }}
+                        </td>
+                        <td class="td edit">
+                           <a href="/deleg/{{ delegation.id_delegation }}/"><button class="button">Edytuj</button></a>
+                        </td>
+                         <td class="td edit">
+                              <form method="post" class="col-md">
+                                  {% csrf_token %}
+                                  <label hidden>
+                                      <input type="text" class="form-control" name="deleg" value="{{delegation.id_delegation}}" hidden/>
+                                  </label>
+                                  <button type="submit" class="button">Usuń</button>
+                              </form>
+                         </td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% if user_role %}
+            <a href="/deleg/add_delegation"><button class="button add">Dodaj delegację</button></a>
+        {% endif %}
+
+
+    </div>
+
+{% endblock %}
