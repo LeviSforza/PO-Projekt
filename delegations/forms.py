@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from django import forms
 from django.contrib.auth import (
@@ -8,7 +8,7 @@ from django.contrib.auth import (
 )
 from django.core.exceptions import ValidationError
 from django.forms import widgets
-from delegations.models import Delegation, Employee, UsersDelegations, Expense
+from delegations.models import Delegation, Employee, Expense
 
 User = get_user_model()
 
@@ -29,7 +29,7 @@ class UserLoginForm(forms.Form):
                 raise forms.ValidationError('Incorrect password')
             if not user.is_active:
                 raise forms.ValidationError('This user is not active')
-        return super(UserLoginForm, self).clean(*args, **kwargs)
+        return super(UserLoginForm, self).clean()
 
 
 class DateTimePickerInput(forms.DateTimeInput):
@@ -57,9 +57,10 @@ class DelegationForm(forms.ModelForm):
         (DOLLAR, DOLLAR),
     )
 
-    departure_date = forms.DateField(widget=widgets.DateInput(format='%Y-%m-%d', attrs={'type': 'date',
-                                                                                        'data-provide': 'datepicker',
-                                                                                        'data-date-format': 'yyyy-mm-dd'}))
+    departure_date = forms.DateField(widget=widgets.DateInput(
+        format='%Y-%m-%d', attrs={'type': 'date',
+                                  'data-provide': 'datepicker',
+                                  'data-date-format': 'yyyy-mm-dd'}))
     return_date = forms.DateField(widget=widgets.DateInput(format='%Y-%m-%d', attrs={'type': 'date',
                                                                                      'data-provide': 'datepicker',
                                                                                      'data-date-format': 'yyyy-mm-dd'}))
@@ -100,7 +101,7 @@ class AddUsersForm(forms.Form):
     employees = Employee.objects.filter(role='PARTICIPANT')
     participants = []
     for employee in employees:
-        participant = (employee.id, str(employee.id) + " - " + str(employee.last_name) + " " + \
+        participant = (employee.id, str(employee.id) + " - " + str(employee.last_name) + " " +
                        str(employee.first_name) + " - " + str(employee.username))
         participants.append(participant)
     users = forms.MultipleChoiceField(choices=participants,
@@ -142,13 +143,22 @@ class ExpenseForm(forms.ModelForm):
     )
 
     title = forms.CharField(max_length=45)
-    date = forms.DateField(widget=widgets.DateInput(format='%Y-%m-%d', attrs={'type': 'date',
-                                                                              'data-provide': 'datepicker',
-                                                                              'data-date-format': 'yyyy-mm-dd'}))
+    date = forms.DateField(help_text="Data nie może być późniejsza od dzisiejszej", widget=widgets.DateInput(
+        format='%Y-%m-%d', attrs={'type': 'date', 'data-provide': 'datepicker', 'data-date-format': 'yyyy-mm-dd'}))
     type = forms.ChoiceField(choices=TYPE, required=True)
     sum = forms.DecimalField(decimal_places=2, max_digits=20)
     currency = forms.ChoiceField(choices=CURRENCY, required=True)
     confirmation = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': False}), required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        date = cleaned_data.get("date")
+
+        if date > datetime.date.today():
+            raise ValidationError(
+                "Wprowadzone dane są niepoprawne! "
+                "Data nie może być późniejsza od dzisiejszej!!!"
+            )
 
     class Meta:
         model = Expense

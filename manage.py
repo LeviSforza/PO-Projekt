@@ -3,6 +3,10 @@
 import os
 import sys
 
+import django
+from django.conf import settings
+from django.test.utils import get_runner
+
 
 def main():
     """Run administrative tasks."""
@@ -20,3 +24,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
