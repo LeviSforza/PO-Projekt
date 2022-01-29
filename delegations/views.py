@@ -1,20 +1,14 @@
-import datetime
-
 from django.contrib.auth import (
     authenticate,
     login,
     logout
 )
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
 from django.shortcuts import render, redirect
-from django.utils.dateparse import parse_date
 
-from delegations.models import Delegation, Employee, UsersDelegations, Billing, BusinessExpenses, Expense
+from delegations.models import Employee, Expense
 from .forms import UserLoginForm, DelegationForm, AddUsersForm, ExpenseForm
-
-
-# Create your views here.
+from .utils import *
 
 
 def index(request):
@@ -70,17 +64,8 @@ def delegation(request, delegation_id):
     context = {}
     curr_delegation = Delegation.objects.get(pk=delegation_id)
     form = DelegationForm(instance=curr_delegation)
-    participants_list = [curr_delegation.FK_organizer]
-    for inst in UsersDelegations.objects.all():
-        if inst.FK_delegation.id_delegation == delegation_id:
-            participants_list.append(inst.FK_user)
-
-    billing = Billing.objects.get(FK_delegation=curr_delegation)
-    business_expenses = BusinessExpenses.objects.get(FK_billing=billing)
-    expenses_list = []
-    for exp in Expense.objects.all():
-        if exp.FK_business_expenses == business_expenses:
-            expenses_list.append(exp)
+    participants_list = getParticipantsList(delegation_id)
+    expenses_list = curr_delegation.getExpenses()
 
     if request.method == 'POST':
         if 'cancel' in request.POST:
@@ -140,9 +125,7 @@ def add_delegation(request):
 
         if form.is_valid():
             form.save()
-            billing = Billing.objects.create(
-                FK_delegation=Delegation.objects.get(id_delegation=delegation.id_delegation))
-            BusinessExpenses.objects.create(FK_billing=Billing.objects.get(id_billing=billing.id_billing))
+            delegation.createDelegationsCompanionObjects()
             return redirect('/delegations/deleg')
     else:
         form = DelegationForm()
@@ -162,7 +145,6 @@ def add_users(request, delegation_id):
         user_deleg_list = []
         for users_delegation in users_delegations:
             user_deleg_list.append(users_delegation.FK_user.id)
-        print(user_deleg_list)
         form = AddUsersForm(request.POST or None)
         if form.is_valid():
             users = form.cleaned_data.get('users')
@@ -188,10 +170,7 @@ def add_expense(request, delegation_id):
     form = None
     context = {}
     if request.method == 'POST':
-        billing = Billing.objects.get(
-            FK_delegation=Delegation.objects.get(id_delegation=delegation_id))
-        expense = Expense(FK_business_expenses=BusinessExpenses.objects.get(
-            FK_billing=billing))
+        expense = Expense(FK_business_expenses=getBusinessExpenses(delegation_id))
         form = ExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
             form.save()

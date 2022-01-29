@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import djangoPO
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -38,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bootstrap_modal_forms',
 ]
 
 AUTH_USER_MODEL = "delegations.Employee"
@@ -86,6 +87,9 @@ DATABASES = {
         'PASSWORD': 'root123',
         'HOST': 'localhost',
         'PORT': '3306',
+        'TEST': {
+            'NAME': 'test_base',
+        },
     }
 }
 

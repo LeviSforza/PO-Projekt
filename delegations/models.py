@@ -15,9 +15,9 @@ class MyWorkerManager(BaseUserManager):
         if not username:
             raise ValueError('Username is required!')
         if not first_name:
-            raise ValueError('first_name is required!')
+            raise ValueError('First name is required!')
         if not last_name:
-            raise ValueError('last_name is required!')
+            raise ValueError('Last name is required!')
         user = self.model(
             username=username,
             first_name=first_name,
@@ -132,16 +132,37 @@ class Delegation(models.Model):
     departure_date = models.DateField()
     return_date = models.DateField()
     country = models.CharField(max_length=45)
-    status = models.CharField(max_length=255, choices=STATUS, default=NEW)
-    base_currency = models.CharField(max_length=255, choices=CURRENCY, default=ZLOTY)
+    status = models.CharField(max_length=20, choices=STATUS, default=NEW)
+    base_currency = models.CharField(max_length=30, choices=CURRENCY, default=ZLOTY)
     duration = models.IntegerField(default=0)
     FK_organizer = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True)
+
+    def getBilling(self):
+        return Billing.objects.get(FK_delegation=self)
+
+    def getBusinessExpenses(self):
+        billing = Billing.objects.get(FK_delegation=self)
+        return BusinessExpenses.objects.get(FK_billing=billing)
+
+    def getExpenses(self):
+        expenses_list = []
+        for exp in Expense.objects.all():
+            if exp.FK_business_expenses == self.getBusinessExpenses():
+                expenses_list.append(exp)
+        return expenses_list
+
+    def createDelegationsCompanionObjects(self):
+        billing = Billing.objects.create(FK_delegation=self)
+        BusinessExpenses.objects.create(FK_billing=Billing.objects.get(id_billing=billing.id_billing))
+
+    def __str__(self):
+        return str(self.departure_date) + ' - ' + str(self.return_date) + ' - ' + self.country
 
     class Meta:
         constraints = [
             CheckConstraint(
                 check=Q(return_date__gte=F('departure_date')),
-                name='check_start_date',
+                name='departure_return_dates_check',
             ),
         ]
 
@@ -204,7 +225,7 @@ class Expense(models.Model):
     date = models.DateField()
     type = models.CharField(max_length=40, choices=TYPE, default=ADDITIONAL)
     sum = models.DecimalField(default=0.0, decimal_places=2, max_digits=20)
-    currency = models.CharField(max_length=255, choices=CURRENCY, default=ZLOTY)
+    currency = models.CharField(max_length=30, choices=CURRENCY, default=ZLOTY)
     confirmation = models.FileField(upload_to='expenses/', blank=True, null=True)
     FK_business_expenses = models.ForeignKey(BusinessExpenses, on_delete=models.CASCADE)
 
