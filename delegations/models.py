@@ -100,7 +100,6 @@ class Delegation(models.Model):
     ENDED = 'ended'
     PAIDOFF = 'paidoff'
     VALID = 'valid'
-
     STATUS = (
         (NEW, NEW),
         (VALID, VALID),
@@ -116,7 +115,6 @@ class Delegation(models.Model):
     FRANC = 'swiss franc'
     KORUNA = 'czech koruna'
     DOLLAR = 'american dollar'
-
     CURRENCY = (
         (EURO, EURO),
         (ZLOTY, ZLOTY),
