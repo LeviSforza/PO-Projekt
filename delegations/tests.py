@@ -1,122 +1,169 @@
-import datetime
+import time
 
-from django.db import IntegrityError
-from django.test import TestCase
-
-from delegations.forms import ExpenseForm
-from delegations.models import Delegation, Employee, Billing, BusinessExpenses, Expense
-
-
-class ExpenseFormTest(TestCase):
-    def test_expense_form_date_field_help_text(self):
-        form = ExpenseForm()
-        self.assertTrue(
-            form.fields['date'].help_text == 'Data nie może być późniejsza od dzisiejszej')
-
-    # common case
-    def test_expense_form_date_correct_data(self):
-        date = datetime.date.today() - datetime.timedelta(days=10)
-        form = ExpenseForm(data={'title': 'test', 'date': date, 'type': 'NOCLEG', 'sum': 0, 'currency': 'euro'})
-        self.assertTrue(form.is_valid())
-
-    # common case
-    def test_expense_form_date_incorrect_data(self):
-        date = datetime.date.today() + datetime.timedelta(days=10)
-        form = ExpenseForm(data={'title': 'test', 'date': date, 'type': 'NOCLEG', 'sum': 0, 'currency': 'euro'})
-        self.assertFalse(form.is_valid())
-
-    # edge case
-    def test_expense_form_date_one_day_in_the_past(self):
-        date = datetime.date.today() - datetime.timedelta(days=1)
-        form = ExpenseForm(data={'title': 'test', 'date': date, 'type': 'NOCLEG', 'sum': 0, 'currency': 'euro'})
-        self.assertTrue(form.is_valid())
-
-    # edge case
-    def test_renew_form_date_today(self):
-        date = datetime.date.today()
-        form = ExpenseForm(data={'title': 'test', 'date': date, 'type': 'NOCLEG', 'sum': 0, 'currency': 'euro'})
-        self.assertTrue(form.is_valid())
-
-    # edge case
-    def test_expense_form_date_one_day_in_the_future(self):
-        date = datetime.date.today() + datetime.timedelta(days=1)
-        form = ExpenseForm(data={'title': 'test', 'date': date, 'type': 'NOCLEG', 'sum': 0, 'currency': 'euro'})
-        self.assertFalse(form.is_valid())
+from django.conf import settings
+from django.test import LiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from delegations.models import Employee
 
 
-class DelegationModelTest(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        Employee.objects.create(username='organizer', first_name='Anna', last_name='Jantar',
-                                password='p@ss', role='ORGANIZER')
-        Delegation.objects.create(departure_date='2022-01-21', return_date='2022-01-29', country='Polska',
-                                  duration=8, FK_organizer=Employee.objects.get(id=1))
-        Delegation.objects.get(id_delegation=1).createDelegationsCompanionObjects()
+class TestAddDelegation(LiveServerTestCase):
+    def setUp(self):
+        self.selenium = webdriver.Chrome('D:\LenovoD\Downloads\chromedriver_win32\chromedriver.exe')
+        super(TestAddDelegation, self).setUp()
+        user = Employee.objects.create_superuser(username='admin',
+                                                 password='pw',
+                                                 first_name='super',
+                                                 last_name='user')
+        user.role = 'ORGANIZER'
+        user.save()
+        self.client.force_login(user)  # TestCase client login method
+        session_key = self.client.cookies[settings.SESSION_COOKIE_NAME].value
+        self.selenium.get('http://127.0.0.1:8000/')  # load any page
+        self.selenium.add_cookie({'name': settings.SESSION_COOKIE_NAME, 'value': session_key, 'path': '/'})
 
-    def test_country_max_length(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        max_length = delegation._meta.get_field('country').max_length
-        self.assertEqual(max_length, 45)
+    def test_add_delegation_button_redirect_PT001(self):
+        selenium = self.selenium
+        selenium.get('http://127.0.0.1:8000/deleg/login/')
+        selenium.find_element(By.ID, 'username').send_keys('lenovo')
+        selenium.find_element(By.ID, 'password').send_keys('lenovo')
+        selenium.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
 
-    def test_status_max_length(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        max_length = delegation._meta.get_field('status').max_length
-        self.assertEqual(max_length, 20)
+        selenium.get('http://127.0.0.1:8000/deleg/')
 
-    def test_base_currency_max_length(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        max_length = delegation._meta.get_field('base_currency').max_length
-        self.assertEqual(max_length, 30)
+        # click button "Add delegation"
+        add_button = selenium.find_element(By.ID, 'add_button')
+        add_button.click()
 
-    def test_str_call(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        self.assertEqual('2022-01-21 - 2022-01-29 - Polska', str(delegation))
+        assert selenium.current_url == 'http://127.0.0.1:8000/deleg/add_delegation/'
 
-    def test_departure_return_dates_constraint_same_dates(self):
-        delegation2 = Delegation(departure_date='2022-01-01', return_date='2022-01-01', country='Polska',
-                                 FK_organizer=Employee.objects.get(id=1))
-        delegation2.save()
-        self.assertEqual(delegation2, Delegation.objects.get(id_delegation=2))
+    def test_add_delegation_correct_data_PT002(self):
+        selenium = self.selenium
+        selenium.get('http://127.0.0.1:8000/deleg/login/')
+        selenium.find_element(By.ID, 'username').send_keys('lenovo')
+        selenium.find_element(By.ID, 'password').send_keys('lenovo')
+        selenium.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
 
-    def test_departure_return_dates_constraint_error(self):
-        with self.assertRaises(Exception) as raised:
-            Delegation.objects.create(departure_date='2022-01-02',
-                                      return_date='2022-01-01', country='Polska',
-                                      FK_organizer=Employee.objects.get(id=1))
-        self.assertEqual(IntegrityError, type(raised.exception))
+        selenium.get('http://127.0.0.1:8000/deleg/add_delegation/')
 
-    def test_create_delegations_companion_objects(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        billing = Billing.objects.get(FK_delegation=delegation)
-        business_expenses = BusinessExpenses.objects.get(FK_billing=billing)
-        self.assertEqual(Billing.objects.get(id_billing=1), billing)
-        self.assertEqual(BusinessExpenses.objects.get(id_business_expenses=1), business_expenses)
+        # get form elements
+        departure_date = selenium.find_element(By.ID, 'id_departure_date')
+        return_date = selenium.find_element(By.ID, 'id_return_date')
+        duration = selenium.find_element(By.ID, 'id_duration')
+        country = selenium.find_element(By.ID, 'id_country')
+        base_currency = selenium.find_element(By.ID, 'id_base_currency')
 
-    def test_get_billing(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        billing = delegation.getBilling()
-        self.assertEqual(Billing.objects.get(id_billing=1), billing)
+        # populate the form with data
+        departure_date.send_keys('06.02.2022')
+        return_date.send_keys('10.02.2022')
+        country.send_keys('Niemcy')
+        base_currency.send_keys('euro')
+        duration.send_keys('4')
 
-    def test_get_business_expenses(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        business_expenses = delegation.getBusinessExpenses()
-        self.assertEqual(BusinessExpenses.objects.get(id_business_expenses=1), business_expenses)
+        # submit form
+        selenium.find_element(By.ID, 'add_delegation').click()
 
-    def test_get_expenses_none(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        expenses = delegation.getExpenses()
-        self.assertEqual([], expenses)
+        table = selenium.find_element(By.XPATH, "//table[@class='table']/tbody")
+        row = table.find_element(By.XPATH, "//tr")
+        td_departure = row.find_element(By.XPATH, "//td[@class='td departure']").text
+        td_return = row.find_element(By.XPATH, "//td[@class='td return']").text
+        td_duration = row.find_element(By.XPATH, "//td[@class='td duration']").text
+        td_country = row.find_element(By.XPATH, "//td[@class='td country']").text
 
-    def test_get_expenses_one(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        Expense.objects.create(title='test', date='2022-01-01', FK_business_expenses=delegation.getBusinessExpenses())
-        expenses = delegation.getExpenses()
-        self.assertEqual(1, len(expenses))
+        assert td_departure == '6 lutego 2022'
+        assert td_return == '10 lutego 2022'
+        assert td_duration == '4'
+        assert td_country == 'Niemcy'
 
-    def test_get_expenses_many(self):
-        delegation = Delegation.objects.get(id_delegation=1)
-        for x in range(20):
-            Expense.objects.create(title='test' + str(x), date='2022-01-01',
-                                   FK_business_expenses=delegation.getBusinessExpenses())
-        expenses = delegation.getExpenses()
-        self.assertEqual(20, len(expenses))
+    def test_add_delegation_incorrect_data_PT003(self):
+        selenium = self.selenium
+        selenium.get('http://127.0.0.1:8000/deleg/login/')
+        selenium.find_element(By.ID, 'username').send_keys('lenovo')
+        selenium.find_element(By.ID, 'password').send_keys('lenovo')
+        selenium.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
+
+        selenium.get('http://127.0.0.1:8000/deleg/add_delegation/')
+
+        # get form elements
+        departure_date = selenium.find_element(By.ID, 'id_departure_date')
+        return_date = selenium.find_element(By.ID, 'id_return_date')
+        duration = selenium.find_element(By.ID, 'id_duration')
+        country = selenium.find_element(By.ID, 'id_country')
+        base_currency = selenium.find_element(By.ID, 'id_base_currency')
+
+        # populate the form with data
+        departure_date.send_keys('16.02.2022')
+        return_date.send_keys('10.02.2022')
+        country.send_keys('Niemcy')
+        base_currency.send_keys('euro')
+        duration.send_keys('-1')
+
+        # submit form
+        selenium.find_element(By.ID, 'add_delegation').click()
+
+        error_ul = selenium.find_element(By.XPATH, "//ul[@class='errorlist nonfield']")
+        error_li = error_ul.find_element(By.XPATH, "//li").text
+
+        assert error_li == 'Wprowadzone dane są niepoprawne! Data powrotu nie może być wcześniejsza od daty wyjazdu!!!'
+
+        selenium.find_element(By.ID, 'id_return_date').send_keys('20.02.2022')
+        selenium.find_element(By.ID, 'add_delegation').click()
+
+        error_ul = selenium.find_element(By.XPATH, "//ul[@class='errorlist nonfield']")
+        error_li = error_ul.find_element(By.XPATH, "//li").text
+        assert error_li == 'Wprowadzone dane są niepoprawne! Czas trwania wyjazdu nie może być mniejszy od 0!!!'
+
+    def test_add_delegation_not_enough_data_PT004(self):
+        selenium = self.selenium
+
+        selenium.get('http://127.0.0.1:8000/deleg/login/')
+
+        selenium.find_element(By.ID, 'username').send_keys('lenovo')
+        selenium.find_element(By.ID, 'password').send_keys('lenovo')
+
+        selenium.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
+
+        selenium.get('http://127.0.0.1:8000/deleg/add_delegation/')
+
+        departure_date = selenium.find_element(By.ID, 'id_departure_date')
+        return_date = selenium.find_element(By.ID, 'id_return_date')
+        duration = selenium.find_element(By.ID, 'id_duration')
+        country = selenium.find_element(By.ID, 'id_country')
+        base_currency = selenium.find_element(By.ID, 'id_base_currency')
+        submit = selenium.find_element(By.ID, 'add_delegation')
+
+        # populate the form with data
+        return_date.send_keys('16.12.2023')
+        base_currency.send_keys('zloty')
+        duration.send_keys('6')
+
+        # submit form
+        submit.click()
+        validation_message_1 = departure_date.get_attribute("validationMessage")
+
+        assert validation_message_1 == 'Wypełnij to pole.'
+
+        departure_date.send_keys('10.12.2023')
+        submit.click()
+        validation_message_2 = country.get_attribute("validationMessage")
+
+        assert validation_message_2 == 'Wypełnij to pole.'
+
+        country.send_keys('Polska')
+        submit.click()
+
+        table = selenium.find_element(By.XPATH, "//table[@class='table']/tbody")
+        row = table.find_element(By.XPATH, "//tr")
+        td_departure = row.find_element(By.XPATH, "//td[@class='td departure']").text
+        td_return = row.find_element(By.XPATH, "//td[@class='td return']").text
+        td_duration = row.find_element(By.XPATH, "//td[@class='td duration']").text
+        td_country = row.find_element(By.XPATH, "//td[@class='td country']").text
+
+        assert td_departure == '10 grudnia 2023'
+        assert td_return == '16 grudnia 2023'
+        assert td_duration == '6'
+        assert td_country == 'Polska'
+
+    def tearDown(self):
+        self.selenium.quit()
+        super(TestAddDelegation, self).tearDown()

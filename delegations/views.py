@@ -187,19 +187,19 @@ def advance(request):
 
 
 def login_view(request):
-    next = request.GET.get('next')
-    form = UserLoginForm(request.POST or None)
-    if form.is_valid():
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password')
+    nextReq = request.GET.get('next')
+    formLogin = UserLoginForm(request.POST or None)
+    if formLogin.is_valid():
+        username = formLogin.cleaned_data.get('username')
+        password = formLogin.cleaned_data.get('password')
         user = authenticate(username=username, password=password)
         login(request, user)
-        if next:
-            return redirect(next)
+        if nextReq:
+            return redirect(nextReq)
         return redirect('/')
 
     context = {
-        'form': form,
+        'form': formLogin,
     }
     return render(request, "login.html", context)
 
